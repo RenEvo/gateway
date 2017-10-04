@@ -1,0 +1,283 @@
+---
+monitoring:
+  http:
+    # enable the monitoring web UI
+    enabled: true
+
+    # specify a custom front end if you want to customize it
+    path: ./public/monitoring
+
+    # IP to listen on, default is localhost
+    address: 127.0.0.1
+
+    # port to listen on, default is 8080
+    port: 8080
+
+    # serve the site over https
+    tls:
+      cert: ./certs/cert.crt
+      key: ./certs/cer.key
+      
+  logging:
+    # when set to true, this will log the detected "real ip" of the remote request. This is a best guess approach
+    real_ip: true
+
+    outputs:
+      # when provided, will output to stdout for access logs and stderr for application logs
+      std:
+        # supported formats
+        # common, combined, json, json-pretty, bunyan, logfmt
+        format: common
+
+      # when provided, and systemd is detected (environment) and prepended with a <#> for log levels.
+      # all http access logs will be placed on log level INFO (6) while application logging will be on DEBUG (7)
+      # however, errors will still be logged appropriately
+      systemd:
+        # supported formats
+        # common, combined, logfmt
+        format: combined
+
+      # when provided this will output logs to syslog
+      # application specific logs will be output with sdId of gateway@20171010 with a level of DEBUG (7)
+      # http access logs will be output with sdId of gatewayHTTP@20171010 with a level of INFO (6)
+      # however, errors will still be logged appropriately
+      syslog:
+        address: tcp://localhost:9999
+        # a valid syslog facility, generally this will be local1-local7
+        facility: local7
+        # supported formats
+        # common, combined, logfmt
+        format: logfmt
+        # supported rfcs
+        # rfc3164, rfc5424, rfc5424micro
+        rfc: rfc5424
+        # The data section allows you to add custom structured data sections to the syslog output
+        data:
+            # [example@0 site="example.org"]
+          - sdId: example@0
+            values:
+              site: example.org
+
+  reporting:
+    # given the below settings (most verbose)
+    # <prefix>.host.<hostname>.path.<path>.method.<method>.<metric.name>:value
+    # gateway.host.server01.path.api.test.method.get.respone.time:50
+    prefix: gateway
+    includes:
+      site_name: true
+      host_name: true
+      path: true
+      method: true
+
+    tag_sets:
+      role: gateway
+
+    tags:
+      - http
+
+    # metric.name:value|type|@sample_rate
+    statsd:
+      address: udp://localhost:8125
+
+    # metric.name:value|type|@sample_rate|#tag1:value,tag2
+    dogstatsd:
+      address: udp://localhost:8125
+
+    # metric.name,tag1:value,tag2:value|type|@sample_rate
+    telegraf:
+      address: udp://localhost:8125
+
+    # metric.name:value|type[|@flag]
+    statsite:
+      address: udp://localhost:8125
+
+dns:
+  # custom DNS resolver, the below setting would use consul to resolve DNS
+  server: localhost
+  port: 8600
+
+site:
+  headers:
+    # when true, the gateway will send a server header with the current version of the software
+    server: true
+
+    # given the list of headers, all responses will have the headers removed before sent to the client
+    strip:
+      - Server
+      - X-Remote-URL
+      - X-Request-ID
+      - X-Remote-Tracking
+
+    # when set to true, the gateway will generate a unique request header when communicating with the backend services (useful for tracking)
+    # example: X-Request-ID: <uuid4>
+    request_id: true
+
+    # a map of custom headers to append to every response, these headers will additionally automatically be whitelisted with CORS
+    append:
+      X-Custom-Header: RAWR
+    
+    # when set to true, gateway will return some additional response headers
+    # X-Remote-URL: <backend URL>
+    # X-Content-Path: <disk path>
+    # X-Content-Last-Modified: <stat info for content file>
+    debug: true
+
+  # optional host filtering, if these are specified, and an unknown host is encounted, the server will return a forbidden response
+  hosts:
+    - example.org
+    - www.example.org
+
+  content:
+    # the location of your static web content
+    path: ./public/www
+    
+    # the default document to serve
+    default: index.html
+
+    # when true, any server side html requests will return the default document instead of a 404
+    spa_mode: true
+
+    # when overwritten here, custom error pages will be used, these are also scanned from the site.content.path for existence (*.html)
+    # wildcard pages can be used:
+    # 400-499: 4xx.html
+    # 500-599: 5xx.html
+    # 400-599: error.html
+    # application/json backend requests will be served with an appropriate JSON error response when blank for consistent API usage
+    errors:
+      5xx: ./public/errors/server.html
+      401: ./public/errors/unauthorized.html
+
+    # this section defines triggers for auto-push of content when resources are requested.
+    # this works by evaluating the link headers in the html files to decide what to push.
+    push:
+      # when true, the server will be exposed over http2, this can't guarantee that what is sitting in front of this server supports http2
+      enable: true
+
+      # this declares that a cookie will be used to determine if push should be initiated, this is an optimization so that if the cookie exists and is valid, then the push will not be made.
+      cookie_tracker:
+        enable: true
+        # the name of the cookie to store on the client
+        name: content_push
+
+    # when true, cache headers will be generated and responded to for the content
+    caching: true
+
+  # what ports to listen on, without any listeners, the server will serve http requests on port 80 and all interfaces (0.0.0.0)
+  listeners:
+    - address: 0.0.0.0
+      port: 80
+
+    - address: 0.0.0.0
+      port: 443
+      # when true, any request on any other listener will be automatically redirected to this listener on the specified host (e.g. http://example.org to https://example.org)
+      force: true
+      # when preent will send the Strict-Transport-Security header
+      htst: 
+        # how long to enable it
+        age: 1y
+        # do you want htst on sub-domains as well?
+        sub_domains: true
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security#Preloading_Strict_Transport_Security
+        preload: false
+      
+      # https cert paths (in the future this will include lets-encrypt support)
+      tls:
+        cert: ./certs/cert.crt
+        key: ./certs/cer.key
+
+  # when present, will expose an OpenAPI specification with merged results from services
+  spec:
+    # path to serve the openAPI spec on, this will serve both json and yaml
+    path: /api/specification
+
+    # enable a web UI for the path when accept is allowed
+    ui: ./public/swagger-ui
+  
+  # cors can be defined at the site level
+  cors:
+    # when true, all cross origin requests will be declined
+    disable: false
+
+    # when true, the gateway will high-jack and respond to all CORS requests so that the backends don't need to
+    # i.e. if OPTIONS pre-flight request, the gateway will respond without hitting the backend
+    # if CORS headers are detected on normal requests, they will be validated and written before the request is sent to the backend.
+    handle: true
+
+    # list of origins that are allowed, use * here to allow all
+    origins:
+      - *
+    
+    # list of methods that are allowed, use * here to allow all
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    
+    # list of headers that are allowed, use * here to allow all
+    request_headers:
+      - X-CUSTOM-HEADER
+    
+    # list of headers that the client is allowed to get back, use * here to allow all
+    response_headers:
+      - *
+    
+    # when true, will allow authentication headers through
+    authentication: true
+
+  # this section defines the retry behavour for backend requests
+  retry:
+    # how many times should we retry connecting to a backend
+    # -1 will retry until timeout
+    count: 5
+    # how long should we wait between connection retries
+    delay: 10ms
+    # what is the total time we are willing to wait for a backend, regardless of count and delay
+    timeout: 1m
+
+  # the lis of static services declared in the system
+  services:
+      # a simple (static) backend service using consul DNS on port 8000
+    - path: /api/test
+      # when path is not empty, the URL will be rewritten to the backend
+      upstream: http://test.service.consul:8000/
+      # provide a path to a JSON OpenAPI specification to merge into the parent
+      # this will mod the paths to match the routed paths above
+      spec: /api/specification.json
+      # how long before considering the service unreachable
+      timeout_connect: 1s
+      # how long to wait before giving up on a request
+      timeout_read: 30s
+
+      # this specific service will return the gateway health check, which when served via proxy like this, will not include details only response codes.
+    - path: /health/check
+      # when path is empty, the path of the service will be added automatically
+      upstream: http://127.0.0.1:8080
+      # spec for health check
+      spec: /health/check/specification.json
+
+  # the discovery mode for dynamic backends
+  # all configurations from above can be configured via tags:
+  # gateway-path:/api/this
+  # gateway-upstream:/api/that (when not present, direct mapping is used)
+  # gateway-spec:/api/specification.json
+  # gateway-proto:http (or https)
+  # gateway-tls-noverify:true (when using https with bad certs)
+  # gateway-connect-timeout:1s
+  # gateway-timeout-read:30s
+  discovery:
+
+    # supported discovery modes:
+    # consul and docker
+    mode: consul
+
+    consul:
+      address: tcp://localhost:8500
+      # consul token if required
+      #token: asdflkj098098asdf098
+
+    docker:
+      address: unix:///var/run/docker.sock
+      # TLS if required
+      #cert: ./certs/docker/cert.pem
+      #key: ./certs/docker/key.pem
+      #ca: ./certs/docker/ca.pem

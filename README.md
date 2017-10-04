@@ -1,0 +1,20 @@
+Gateway
+=======
+
+A dedicated http content server with backend reverse proxy support.
+
+## But why did you create this?
+
+I have used nginx for years to host websites and use it as an API gateway. My front end "SPA" was completely static, then I spent a ton of time copy/pasting all of my backend routes and upstreams into the conf files. There is a better way. Additionally, NGINX has crap for monitoring unless you pay for support (personal websites aren't really cost effective), so I wanted a way to find out how my servers were performing, without adding a lot of effort (just give me a dashboard).
+
+## Primary Project Goals
+
+Host static files in memory.
+Read backends from consul or docker and automatically map the routes for them.
+Automatically retry backend requests when the server is unavailable (can't connect).
+Deploy with my application (FROM gateway; COPY site /var/www/public)
+Provide a useful modern dashboard for viewing my website.
+Integrate with external monitoring, alerting, and analysis software (ELK, TICK, etc..)
+Scale to "thousands" of requests per second. I don't have high hopes, as I don't need more than that, but feel free to help me improve it for better perf.
+Remove my dependency on nginx.
+Run on any platform (well, whatever GO supports).
