@@ -174,7 +174,7 @@ site:
       # when preent will send the Strict-Transport-Security header
       htst: 
         # how long to enable it
-        age: 1y
+        age: 8760h
         # do you want htst on sub-domains as well?
         sub_domains: true
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security#Preloading_Strict_Transport_Security
@@ -205,7 +205,7 @@ site:
 
     # list of origins that are allowed, use * here to allow all
     origins:
-      - *
+      - "*"
     
     # list of methods that are allowed, use * here to allow all
     methods:
@@ -219,7 +219,7 @@ site:
     
     # list of headers that the client is allowed to get back, use * here to allow all
     response_headers:
-      - *
+      - "*"
     
     # when true, will allow authentication headers through
     authentication: true
