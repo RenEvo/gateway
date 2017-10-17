@@ -7,11 +7,8 @@ monitoring:
     # specify a custom front end if you want to customize it
     path: ./public/monitoring
 
-    # IP to listen on, default is localhost
-    address: 127.0.0.1
-
-    # port to listen on, default is 8080
-    port: 8080
+    # Address to listen on, default is localhost
+    address: tcp://127.0.0.1:8443
 
     # serve the site over https
     tls:
@@ -58,43 +55,46 @@ monitoring:
             values:
               site: example.org
 
-  reporting:
+  metrics:
     # given the below settings (most verbose)
     # <prefix>.host.<hostname>.path.<path>.method.<method>.<metric.name>:value
     # gateway.host.server01.path.api.test.method.get.respone.time:50
     prefix: gateway
     includes:
       site_name: true
-      host_name: true
+      host_name: false
       path: true
       method: true
 
     tag_sets:
       role: gateway
+      host: "{{ .Hostname }}"
 
     tags:
       - http
 
+    # address of the stats server
+    address: udp://localhost:8125
+
+    # Format of the stats messages, the following formats are supported
+    #
+    # statsd
     # metric.name:value|type|@sample_rate
-    statsd:
-      address: udp://localhost:8125
-
+    #
+    # dogstatsd
     # metric.name:value|type|@sample_rate|#tag1:value,tag2
-    dogstatsd:
-      address: udp://localhost:8125
-
+    #
+    # telegraf
     # metric.name,tag1:value,tag2:value|type|@sample_rate
-    telegraf:
-      address: udp://localhost:8125
-
+    #
+    # statsite
     # metric.name:value|type[|@flag]
-    statsite:
-      address: udp://localhost:8125
+    #
+    format: statsd
 
 dns:
   # custom DNS resolver, the below setting would use consul to resolve DNS
-  server: localhost
-  port: 8600
+  address: tcp://localhost:8600
 
 site:
   headers:
@@ -164,11 +164,9 @@ site:
 
   # what ports to listen on, without any listeners, the server will serve http requests on port 80 and all interfaces (0.0.0.0)
   listeners:
-    - address: 0.0.0.0
-      port: 80
+    - address: tcp://0.0.0.0:80
 
-    - address: 0.0.0.0
-      port: 443
+    - address: tcp://0.0.0.0:443
       # when true, any request on any other listener will be automatically redirected to this listener on the specified host (e.g. http://example.org to https://example.org)
       force: true
       # when preent will send the Strict-Transport-Security header
@@ -239,7 +237,7 @@ site:
       # a simple (static) backend service using consul DNS on port 8000
     - path: /api/test
       # when path is not empty, the URL will be rewritten to the backend
-      upstream: http://test.service.consul:8000/
+      address: http://test.service.consul:8000/
       # provide a path to a JSON OpenAPI specification to merge into the parent
       # this will mod the paths to match the routed paths above
       spec: /api/specification.json
@@ -251,7 +249,7 @@ site:
       # this specific service will return the gateway health check, which when served via proxy like this, will not include details only response codes.
     - path: /health/check
       # when path is empty, the path of the service will be added automatically
-      upstream: http://127.0.0.1:8080
+      address: http://127.0.0.1:8080
       # spec for health check
       spec: /health/check/specification.json
 
