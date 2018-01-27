@@ -1,4 +1,4 @@
-package gateway
+package main
 
 import (
 	"fmt"
@@ -94,17 +94,8 @@ type SiteConfiguration struct {
 		} `yaml:"push"`
 		EnableCaching bool `yaml:"caching"`
 	} `yaml:"content"`
-	Listeners []struct {
-		Address         Address `yaml:"address"`
-		Force           bool    `yaml:"force"`
-		StrictTransport struct {
-			Age               time.Duration `yaml:"age"`
-			IncludeSubdomains bool          `yaml:"sub_domains"`
-			Preload           bool          `yaml:"preload"`
-		} `yaml:"htst"`
-		TLS *TLSConfiguration `yaml:"tls"`
-	} `yaml:"listeners"`
-	OpenAPI struct {
+	Listeners []SiteListener `yaml:"listeners"`
+	OpenAPI   struct {
 		Path   string `yaml:"path"`
 		UIPath string `yaml:"ui"`
 	} `yaml:"spec"`
@@ -142,6 +133,17 @@ type SiteConfiguration struct {
 			CAPath          string  `yaml:"ca"`
 		}
 	} `yaml:"discovery"`
+}
+
+type SiteListener struct {
+	Address         Address `yaml:"address"`
+	Force           bool    `yaml:"force"`
+	StrictTransport struct {
+		Age               time.Duration `yaml:"age"`
+		IncludeSubdomains bool          `yaml:"sub_domains"`
+		Preload           bool          `yaml:"preload"`
+	} `yaml:"htst"`
+	TLS *TLSConfiguration `yaml:"tls"`
 }
 
 // Configuration details how the gateway actually runs
@@ -224,6 +226,12 @@ func DefaultConfiguration() *Configuration {
 
 	config.Site.Discovery.Mode = "consul"
 	config.Site.Discovery.Consul.Address = "tcp://localhost:8500"
+
+	config.Site.Listeners = []SiteListener{
+		SiteListener{
+			Address: "tcp://localhost:80",
+		},
+	}
 
 	return config
 }
