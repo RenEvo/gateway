@@ -27,7 +27,7 @@ using a command line argument.
 ## Running
 
 ```bash
-go run ./gateway/main.go
+go run main.go
 ```
 
 ### Command Line Options
