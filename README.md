@@ -18,3 +18,22 @@ Integrate with external monitoring, alerting, and analysis software (ELK, TICK, 
 Scale to "thousands" of requests per second. I don't have high hopes, as I don't need more than that, but feel free to help me improve it for better perf.
 Remove my dependency on nginx.
 Run on any platform (well, whatever GO supports).
+
+## sample.yaml
+
+This configuration file represents the overall wanted specification for the server and will be provided as a "full example". The server will have a way to dump a "default" yaml file 
+using a command line argument.
+
+## Running
+
+```bash
+go run ./gateway/main.go
+```
+
+### Command Line Options
+
+These are in the projects main.go, but provided here for reference.
+
+| Command | Description | Default |
+|---------|-------------|---------|
+|`-config`| Path to a configuration yaml file | NA - uses gateway default configurations |

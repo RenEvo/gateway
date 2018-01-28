@@ -1,4 +1,4 @@
-package gateway
+package server
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/renevo/gateway/logging"
-	"github.com/renevo/gateway/static"
+	"github.com/renevo/gateway/server/static"
 )
 
 // Server represents a gateway server instance

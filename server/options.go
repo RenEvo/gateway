@@ -1,6 +1,6 @@
-package gateway
+package server
 
-import "github.com/renevo/gateway/static"
+import "github.com/renevo/gateway/server/static"
 
 type Option func(*Server)
 

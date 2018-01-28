@@ -9,17 +9,16 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/renevo/gateway"
+	"github.com/renevo/gateway/config"
 	"github.com/renevo/gateway/logging"
+	"github.com/renevo/gateway/server"
 )
-
-// TODO: logging....
 
 func main() {
 	cfgFile := flag.String("config", "", "path to configuration file")
 	flag.Parse()
 
-	var gatewayConfig *Configuration
+	var gatewayConfig *config.Configuration
 
 	if *cfgFile != "" {
 		logging.Infof("Loading configuration file %s", *cfgFile)
@@ -28,7 +27,7 @@ func main() {
 			panic(fmt.Errorf("failed to read configuration file %s: %v", *cfgFile, err))
 		}
 
-		cfg, err := LoadConfiguration(f)
+		cfg, err := config.LoadConfiguration(f)
 		f.Close()
 		if err != nil {
 			panic(fmt.Errorf("failed to read configuration file %s: %v", *cfgFile, err))
@@ -37,12 +36,12 @@ func main() {
 		gatewayConfig = cfg
 	} else {
 		logging.Info("Loading default configuration")
-		gatewayConfig = DefaultConfiguration()
+		gatewayConfig = config.DefaultConfiguration()
 	}
 
 	// build our server up
-	server := gateway.New(
-		gateway.MountSite(gatewayConfig.Site.Content.Path),
+	server := server.New(
+		server.MountSite(gatewayConfig.Site.Content.Path),
 	)
 
 	for _, listener := range gatewayConfig.Site.Listeners {
