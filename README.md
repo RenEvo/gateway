@@ -50,3 +50,7 @@ These are setting that allow you to tweak some of the underlying system behavior
 |`GATEWAY_SITE_MEMORY_FILE_MAX_SIZE`| The maximum file size to put in memory for the web hosting, if you have more memory, use it! | 2mb |
 
 
+## Credits
+
+* `favicon.ico` in default ./public/www taken from https://www.shareicon.net/balancing-elastic-copy-networking-compute-load-92244
+
