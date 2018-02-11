@@ -4,7 +4,13 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/subosito/gotenv"
 )
+
+func init() {
+	gotenv.Load("./.env")
+}
 
 // Bool reads the supplied environmental variable and attempts to parse it.
 //

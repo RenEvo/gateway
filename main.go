@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
@@ -52,7 +53,9 @@ func main() {
 
 		// TODO: handle tls vs non-tls
 		go func(addr *url.URL) {
-			panic(server.Listen(addr))
+			if err := server.Listen(addr); err != nil && err != http.ErrServerClosed {
+				panic(err)
+			}
 		}(listenerAddress)
 	}
 
@@ -62,5 +65,7 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
+	logging.Info("Gateway shutting down")
 	server.Shutdown(ctx)
+	logging.Info("Gateway shutdown")
 }

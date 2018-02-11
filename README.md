@@ -43,11 +43,7 @@ These are in the projects main.go, but provided here for reference.
 
 These are setting that allow you to tweak some of the underlying system behavior.
 
-| Variable                  | Description               | Default           |
-|---------------------------|---------------------------|-------------------|
-|`GATEWAY_DEBUG`| When set to true, will output debug logging| false |
-|`GATEWAY_SITE_MEMORY_FILE_DISABLE`| The web hosting will not read files into memory and only serve from disk| false |
-|`GATEWAY_SITE_MEMORY_FILE_MAX_SIZE`| The maximum file size to put in memory for the web hosting, if you have more memory, use it! | 2mb |
+You can find a full list of environmental variables, the default values, as well as usage text inside the `.env` file.
 
 
 ## Credits
