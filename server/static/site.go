@@ -15,6 +15,7 @@ const (
 // Site represents the gateway static hosting
 type Site struct {
 	handler http.Handler
+	fs      http.FileSystem
 }
 
 // New creates a new static.Site
@@ -22,8 +23,10 @@ type Site struct {
 // By default this will load all files in the specified path less than 2mb into memory to serve without file IO
 func New(path string) *Site {
 	if env.Bool(envBypassMemory) {
+		fs := http.Dir(path)
 		return &Site{
-			handler: http.FileServer(http.Dir(path)),
+			handler: http.FileServer(fs),
+			fs:      fs,
 		}
 	}
 
@@ -36,6 +39,7 @@ func New(path string) *Site {
 
 	return &Site{
 		handler: http.FileServer(fs),
+		fs:      fs,
 	}
 }
 
